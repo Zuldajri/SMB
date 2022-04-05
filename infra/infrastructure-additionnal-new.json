@@ -1,0 +1,256 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "deploymentSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the infrastructure object (domain name, vmsize"
+            }
+        },
+        "virtualNetworkSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the virtual network object"
+            }
+        },
+        "omsSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the recovery services object"
+            }
+        },
+          "baseTemplateUri":{
+            "type":"string"
+        }
+    },
+    "variables": {
+        "baseTemplateUri" : "[parameters('baseTemplateUri')]",
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkSettings').name)]",
+        "managementSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('virtualNetworkSettings').managementSubnetName)]",
+        "vmVariable": {
+            "publicIPAddressName": "[concat(parameters('deploymentSettings').addiVmName, '-pip')]",
+            "publicIPAddressType": "Dynamic",
+            "networkInterfaceName": "[concat(parameters('deploymentSettings').addiVmName, '-nic')]",
+            "vmSize": "[parameters('deploymentSettings').addiVmSizeVmSize]",
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSku": "[parameters('deploymentSettings').imageRefSkuVm]",
+            "osDiskName": "[concat(parameters('deploymentSettings').addiVmName, '-osDisk')]",
+            "dataDiskName": "[concat(parameters('deploymentSettings').addiVmName, '-dataDisk')]",
+            "apiVersion": "2015-06-15"
+        },
+        "backupFabric": "Azure",
+        "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName)]",
+        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName)]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-08-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('vmVariable').networkInterfaceName]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-nic-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('managementSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+
+
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('deploymentSettings').addiVmName]",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "rdsh-vm-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            },
+            "dependsOn": [
+                "rdsh-nic-loop"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmVariable').vmSize]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('deploymentSettings').addiVmName]",
+                    "adminUsername": "[parameters('deploymentSettings').adminUsername]",
+                    "adminPassword": "[parameters('deploymentSettings').adminPassword]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true
+                    }
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('vmVariable').imagePublisher]",
+                        "offer": "[variables('vmVariable').imageOffer]",
+                        "sku": "[variables('vmVariable').imageSku]",
+                        "version": "latest"
+                    },
+
+                    "osDisk": {
+                        "osType": "Windows",
+                        "diskSizeGB":"[parameters('deploymentSettings').addiOsDiskSize]",
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage",
+                        "name": "[variables('vmVariable').osDiskName]",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('deploymentSettings').addiOsDiskType]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('vmVariable').networkInterfaceName)]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('deploymentSettings').storageAccountName), variables('vmVariable').apiVersion).primaryEndpoints.blob)]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').addiVmName,'/Antivirus')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "rdsh-vm-loop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Security",
+                "type": "IaaSAntimalware",
+                "typeHandlerVersion": "1.5",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "AntimalwareEnabled": true,
+                    "Exclusions": {
+                        "Processes": "taskmgr.exe"
+                    },
+                    "RealtimeProtectionEnabled": "true",
+                    "ScheduledScanSettings": {
+                        "isEnabled": "true",
+                        "scanType": "Quick",
+                        "day": "7",
+                        "time": "120"
+                    }
+                },
+                "protectedSettings": null
+            },
+            "copy": {
+                "name": "rdsh-antivirus-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            }
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, '/PSConfigAddiVM')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "rdsh-antivirus-loop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(variables('baseTemplateUri'),'script', '/PSConfigAddiVM.ps1')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigAddiVM.ps1 -VMName ', parameters('deploymentSettings').addiVmName, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName)]"
+                }
+            },
+            "copy": {
+                "name": "rdsh-psconfig-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').addiVmName,'/dscConfiguration')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "rdsh-psconfig-loop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.PowerShell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "configuration": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB.zip')]",
+                        "script": "DSC_Configuration_SMB.ps1",
+                        "function": "SMB"
+                    },
+                    "configurationArguments": {
+                        "domainName": "[parameters('deploymentSettings').domainName]",
+                        "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]",
+                        "location": "[resourceGroup().location]",
+                        "NodeName": "[parameters('deploymentSettings').addiVmName]",
+                        "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
+                    },
+                    "configurationData": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC_Data_SMB_addiVm.psd1')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "domainAdminCredentials": {
+                            "username": "[parameters('deploymentSettings').domainUsername]",
+                            "password": "[parameters('deploymentSettings').domainPassword]"
+                        },
+                        "OMSWorkSpaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').primarySharedKey]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "rdsh-addidsc-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            }
+        },
+        {
+            "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
+            "apiVersion": "2016-12-01",
+            "condition": "[equals(parameters('deploymentSettings').backupEnabledForVms, 'true')]",
+            "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
+            "dependsOn": [
+                "rdsh-addidsc-loop"
+            ],
+            "properties": {
+                "protectedItemType": "Microsoft.Compute/virtualMachines",
+                "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('deploymentSettings').vaultName, parameters('deploymentSettings').backupPolicyName)]",
+                "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').addiVmName)]"
+            },
+            "copy": {
+                "name": "backup-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            }
+        }
+    ],
+    "outputs": {}
+}
