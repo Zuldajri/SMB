@@ -68,8 +68,6 @@
                 ]
             }
         },
-
-
         {
             "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines",
@@ -101,7 +99,6 @@
                         "sku": "[variables('vmVariable').imageSku]",
                         "version": "latest"
                     },
-
                     "osDisk": {
                         "osType": "Windows",
                         "diskSizeGB":"[parameters('deploymentSettings').addiOsDiskSize]",
