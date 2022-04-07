@@ -56,9 +56,67 @@
     "resources": [
         {
             "apiVersion": "2018-02-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('virtualNetworkSettings').managementNetworkSecurityGroupName]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "NSG - Management Subnet"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "emergency-rdp-in-allow",
+                        "properties": {
+                        "description": "Allow RDP",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "3389",
+                        "sourceAddressPrefix": "[parameters('virtualNetwork').emergencySubnetAddressPrefix]",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 120,
+                        "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "emergency-pshttps-in-allow",
+                        "properties": {
+                        "description": "Allow https PowerShell remoting",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "5986",
+                        "sourceAddressPrefix": "[parameters('virtualNetwork').emergencySubnetAddressPrefix]",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 130,
+                        "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "internet-https-in-allow",
+                        "properties": {
+                        "description": "Allow https PowerShell remoting",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "443",
+                        "sourceAddressPrefix": "Internet",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 140,
+                        "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+	 {
+            "apiVersion": "2018-02-01",
             "type": "Microsoft.Network/publicIPAddresses",
             "name": "[variables('vmVariable').publicIPAddressName]",
             "location": "[resourceGroup().location]",
+	    "dependsOn": [
+        	"[concat('Microsoft.Network/networkSecurityGroups/', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
+	    ],
             "properties": {
                 "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]",
                 "dnsSettings": {
@@ -88,7 +146,10 @@
                             }
                         }
                     }
-                ]
+                ],
+	        "networkSecurityGroup": {
+			"id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
+      		}
             }
         },
         {
