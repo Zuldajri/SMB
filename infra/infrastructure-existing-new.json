@@ -1,0 +1,260 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "deploymentSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the infrastructure object (domain name, vmsize"
+            }
+        },
+        "virtualNetworkSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the virtual network object"
+            }
+        },
+        "omsSettings" : {
+            "type": "object",
+            "metadata": {
+                "description" : "the recovery services object"
+            }
+        },
+          "baseTemplateUri":{
+            "type":"string"
+        }
+    },
+    "variables": {
+        "baseTemplateUri" : "[parameters('baseTemplateUri')]",
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkSettings').name)]",
+        "managementSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('virtualNetworkSettings').managementSubnetName)]",
+        "dataDisks": [{
+			"name": "[variables('vmVariable').dataDiskName]",
+			"diskSizeGB": "[parameters('deploymentSettings').primaryDataDiskSize]",
+			"lun": 0,
+			"managedDisk": {
+				"storageAccountType": "[parameters('deploymentSettings').primaryDataDiskType]"
+			},
+			"createOption": "Empty"
+		}],
+        "vmVariable": {
+            "publicIPAddressName": "[concat(parameters('deploymentSettings').primaryVmName, '-pip')]",
+            "publicIPAddressType": "Dynamic",
+            "networkInterfaceName": "[concat(parameters('deploymentSettings').primaryVmName, '-nic')]",
+            "vmSize": "[parameters('deploymentSettings').primaryVmSize]",
+            "imagePublisher": "MicrosoftWindowsServer",
+            "imageOffer": "WindowsServer",
+            "imageSku": "[parameters('deploymentSettings').imageRefSkuVm]",
+            "osDiskName": "[concat(parameters('deploymentSettings').primaryVmName, '-osDisk')]",
+            "dataDiskName": "[concat(parameters('deploymentSettings').primaryVmName, '-dataDisk')]",
+            "apiVersion": "2015-06-15"
+        },
+        "backupFabric": "Azure",
+        "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
+        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-02-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('vmVariable').publicIPAddressName]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2018-08-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('vmVariable').networkInterfaceName]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('vmVariable').publicIPAddressName)]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('vmVariable').publicIPAddressName)]"
+                            },
+                            "subnet": {
+                                "id": "[variables('managementSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('deploymentSettings').primaryVmName]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vmVariable').networkInterfaceName)]"
+            ],
+
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmVariable').vmSize]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('deploymentSettings').primaryVmName]",
+                    "adminUsername": "[parameters('deploymentSettings').adminUsername]",
+                    "adminPassword": "[parameters('deploymentSettings').adminPassword]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true
+                    }
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('vmVariable').imagePublisher]",
+                        "offer": "[variables('vmVariable').imageOffer]",
+                        "sku": "[variables('vmVariable').imageSku]",
+                        "version": "latest"
+                    },
+
+                    "osDisk": {
+                        "osType": "Windows",
+                        "diskSizeGB":"[parameters('deploymentSettings').primaryOsDiskSize]",
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage",
+                        "name": "[variables('vmVariable').osDiskName]",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('deploymentSettings').primaryOsDiskType]"
+                        }
+                    },
+                    "dataDisks": "[if(equals(parameters('deploymentSettings').primaryUseDataDisk, 'False'), json('null'), variables('dataDisks'))]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('vmVariable').networkInterfaceName)]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('deploymentSettings').storageAccountName), variables('vmVariable').apiVersion).primaryEndpoints.blob)]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').primaryVmName,'/Antivirus')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Security",
+                "type": "IaaSAntimalware",
+                "typeHandlerVersion": "1.5",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "AntimalwareEnabled": true,
+                    "Exclusions": {
+                        "Processes": "taskmgr.exe"
+                    },
+                    "RealtimeProtectionEnabled": "true",
+                    "ScheduledScanSettings": {
+                        "isEnabled": "true",
+                        "scanType": "Quick",
+                        "day": "7",
+                        "time": "120"
+                    }
+                },
+                "protectedSettings": null
+            }
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').primaryVmName, '/PSConfigMainVM')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/Antivirus')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(variables('baseTemplateUri'),'script', '/PSConfigMainVM.ps1')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigMainVM.ps1 -VMName ', parameters('deploymentSettings').primaryVmName, ' -PrimaryUseDataDisk ', parameters('deploymentSettings').primaryUseDataDisk, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName)]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/PSConfigMainVM')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.PowerShell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "configuration": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB.zip')]",
+                        "script": "DSC_Configuration_SMB.ps1",
+                        "function": "SMB"
+                    },
+                    "configurationArguments": {
+                        "domainName": "[parameters('deploymentSettings').domainName]",
+                        "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]",
+                        "location": "[resourceGroup().location]",
+                        "NodeName": "[parameters('deploymentSettings').primaryVmName]",
+                        "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
+                    },
+                    "configurationData": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC_Data_SMB_extraVm.psd1')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "domainAdminCredentials": {
+                            "username": "[parameters('deploymentSettings').domainUsername]",
+                            "password": "[parameters('deploymentSettings').domainPassword]"
+                        },
+                        "OMSWorkSpaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').primarySharedKey]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
+            "apiVersion": "2016-12-01",
+            "condition": "[equals(parameters('deploymentSettings').backupEnabledForVms, 'true')]",
+            "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
+            ],
+            "properties": {
+                "protectedItemType": "Microsoft.Compute/virtualMachines",
+                "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('deploymentSettings').vaultName, parameters('deploymentSettings').backupPolicyName)]",
+                "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]"
+            }
+        }
+    ],
+    "outputs": {}
+}
