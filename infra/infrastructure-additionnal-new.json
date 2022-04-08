@@ -30,7 +30,7 @@
         "managementSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('virtualNetworkSettings').managementSubnetName)]",
         "vmVariable": {
             "publicIPAddressType": "Dynamic",
-            "vmSize": "[parameters('deploymentSettings').addiVmSizeVmSize]",
+            "vmSize": "[parameters('deploymentSettings').addiVmSize]",
             "imagePublisher": "MicrosoftWindowsServer",
             "imageOffer": "WindowsServer",
             "imageSku": "[parameters('deploymentSettings').imageRefSkuVm]",
