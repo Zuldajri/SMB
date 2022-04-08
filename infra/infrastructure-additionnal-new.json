@@ -29,26 +29,20 @@
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkSettings').name)]",
         "managementSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('virtualNetworkSettings').managementSubnetName)]",
         "vmVariable": {
-            "publicIPAddressName": "[concat(parameters('deploymentSettings').addiVmName, '-pip')]",
             "publicIPAddressType": "Dynamic",
-            "networkInterfaceName": "[concat(parameters('deploymentSettings').addiVmName, '-nic')]",
             "vmSize": "[parameters('deploymentSettings').addiVmSizeVmSize]",
             "imagePublisher": "MicrosoftWindowsServer",
             "imageOffer": "WindowsServer",
             "imageSku": "[parameters('deploymentSettings').imageRefSkuVm]",
-            "osDiskName": "[concat(parameters('deploymentSettings').addiVmName, '-osDisk')]",
-            "dataDiskName": "[concat(parameters('deploymentSettings').addiVmName, '-dataDisk')]",
             "apiVersion": "2015-06-15"
         },
-        "backupFabric": "Azure",
-        "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName)]",
-        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName)]"
+        "backupFabric": "Azure"
     },
     "resources": [
         {
             "apiVersion": "2018-08-01",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('vmVariable').networkInterfaceName]",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2), '-nic')]",
             "location": "[resourceGroup().location]",
             "copy": {
                 "name": "rdsh-nic-loop",
@@ -71,7 +65,7 @@
         {
             "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[parameters('deploymentSettings').addiVmName]",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
             "location": "[resourceGroup().location]",
             "copy": {
                 "name": "rdsh-vm-loop",
@@ -85,7 +79,7 @@
                     "vmSize": "[variables('vmVariable').vmSize]"
                 },
                 "osProfile": {
-                    "computerName": "[parameters('deploymentSettings').addiVmName]",
+                    "computerName": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
                     "adminUsername": "[parameters('deploymentSettings').adminUsername]",
                     "adminPassword": "[parameters('deploymentSettings').adminPassword]",
                     "windowsConfiguration": {
@@ -104,7 +98,7 @@
                         "diskSizeGB":"[parameters('deploymentSettings').addiOsDiskSize]",
                         "caching": "ReadWrite",
                         "createOption": "FromImage",
-                        "name": "[variables('vmVariable').osDiskName]",
+                        "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2), '-osDisk')]",
                         "managedDisk": {
                             "storageAccountType": "[parameters('deploymentSettings').addiOsDiskType]"
                         }
@@ -113,7 +107,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('vmVariable').networkInterfaceName)]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('deploymentSettings').addiVmName, copyIndex(2), '-nic'))]"
                         }
                     ]
                 },
@@ -127,7 +121,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('deploymentSettings').addiVmName,'/Antivirus')]",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2),'/Antivirus')]",
             "apiVersion": "2019-12-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -161,7 +155,7 @@
         {
             "apiVersion": "2018-06-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('deploymentSettings').addiVmName, '/PSConfigAddiVM')]",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2), '/PSConfigAddiVM')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "rdsh-antivirus-loop"
@@ -177,7 +171,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigAddiVM.ps1 -VMName ', parameters('deploymentSettings').addiVmName, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName)]"
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigAddiVM.ps1 -VMName ', concat(parameters('deploymentSettings').addiVmName, copyIndex(2)), ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName)]"
                 }
             },
             "copy": {
@@ -187,7 +181,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('deploymentSettings').addiVmName,'/dscConfiguration')]",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2),'/dscConfiguration')]",
             "apiVersion": "2019-12-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -208,7 +202,7 @@
                         "domainName": "[parameters('deploymentSettings').domainName]",
                         "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]",
                         "location": "[resourceGroup().location]",
-                        "NodeName": "[parameters('deploymentSettings').addiVmName]",
+                        "NodeName": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
                         "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
                     },
                     "configurationData": {
@@ -234,14 +228,14 @@
             "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
             "apiVersion": "2016-12-01",
             "condition": "[equals(parameters('deploymentSettings').backupEnabledForVms, 'true')]",
-            "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
+            "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', 'iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName, copyIndex(2), '/', 'vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName, copyIndex(2))]",
             "dependsOn": [
                 "rdsh-addidsc-loop"
             ],
             "properties": {
                 "protectedItemType": "Microsoft.Compute/virtualMachines",
                 "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('deploymentSettings').vaultName, parameters('deploymentSettings').backupPolicyName)]",
-                "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').addiVmName)]"
+                "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').addiVmName, copyIndex(2))]"
             },
             "copy": {
                 "name": "backup-loop",
