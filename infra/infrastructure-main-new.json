@@ -183,7 +183,7 @@
             "name": "[concat(parameters('deploymentSettings').primaryVmName, '/PSConfigMainVM')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/Antivirus')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'Antivirus')]"
             ],
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -206,7 +206,7 @@
             "apiVersion": "2019-12-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/PSConfigMainVM')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'PSConfigMainVM')]"
             ],
             "properties": {
                 "publisher": "Microsoft.PowerShell",
@@ -264,7 +264,7 @@
             "apiVersion": "2019-09-01",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
-                "[concat('Microsoft.Compute/virtualMachines/extensions/', parameters('deploymentSettings').primaryVmName, '/dscConfiguration')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions/', parameters('deploymentSettings').primaryVmName, 'dscConfiguration')]"
             ],
             "properties": {
                 "addressSpace": {
