@@ -243,7 +243,7 @@
             "name": "[concat(parameters('deploymentSettings').primaryVmName, '/PSConfigMainVM')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/Antivirus')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'Antivirus')]"
             ],
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -266,7 +266,7 @@
             "apiVersion": "2019-12-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/PSConfigMainVM')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'PSConfigMainVM')]"
             ],
             "properties": {
                 "publisher": "Microsoft.PowerShell",
@@ -308,7 +308,7 @@
             "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
             ],
             "properties": {
                 "protectedItemType": "Microsoft.Compute/virtualMachines",
