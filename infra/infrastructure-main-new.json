@@ -151,7 +151,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('deploymentSettings').primaryVmName,'/Antivirus')]",
-            "apiVersion": "2019-12-01",
+            "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]"
@@ -203,7 +203,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]",
-            "apiVersion": "2019-12-01",
+            "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'PSConfigMainVM')]"
