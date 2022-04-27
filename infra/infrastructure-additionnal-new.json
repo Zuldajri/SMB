@@ -223,24 +223,6 @@
                 "name": "rdsh-addidsc-loop",
                 "count": "[parameters('deploymentSettings').numberOfExtraVms]"
             }
-        },
-        {
-            "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
-            "apiVersion": "2016-12-01",
-            "condition": "[equals(parameters('deploymentSettings').backupEnabledForVms, 'true')]",
-            "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', 'iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName, copyIndex(2), '/', 'vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').addiVmName, copyIndex(2))]",
-            "dependsOn": [
-                "rdsh-addidsc-loop"
-            ],
-            "properties": {
-                "protectedItemType": "Microsoft.Compute/virtualMachines",
-                "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('deploymentSettings').vaultName, parameters('deploymentSettings').backupPolicyName)]",
-                "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').addiVmName, copyIndex(2))]"
-            },
-            "copy": {
-                "name": "backup-loop",
-                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
-            }
         }
     ],
     "outputs": {}
