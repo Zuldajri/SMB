@@ -3,7 +3,7 @@ Configuration SMB {
     [CmdletBinding()]
 
     Param (
-        [string] $NodeName = $env:COMPUTERNAME,
+        [string] $NodeName = "localhost",
         [string] $domainName,
         [string] $domainNameLabel,
         [string] $location,
