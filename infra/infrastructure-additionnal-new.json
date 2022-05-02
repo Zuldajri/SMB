@@ -194,8 +194,8 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "configuration": {
-                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB-addiVm.zip')]",
-                        "script": "DSC_Configuration_SMB-addiVm.ps1",
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB.zip')]",
+                        "script": "DSC_Configuration_SMB.ps1",
                         "function": "SMB"
                     },
                     "configurationArguments": {
