@@ -1,4 +1,4 @@
-﻿Configuration SMB {
+Configuration SMB {
 
     [CmdletBinding()]
 
@@ -152,7 +152,7 @@
             }
         }
     }
-}
+
 
 
 
