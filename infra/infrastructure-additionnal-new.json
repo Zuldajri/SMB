@@ -204,6 +204,9 @@
                         "location": "[resourceGroup().location]",
                         "NodeName": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
                         "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
+                    },
+                    "configurationData": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC_Data_SMB_addiVm.psd1')]"
                     }
                 },
                 "protectedSettings": {
