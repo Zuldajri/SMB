@@ -4,7 +4,7 @@
 			NodeName="*"
 			RetryCount = 20
 			RetryIntervalSec = 30
-			PSDscAllowPlainTextPassword=$false
+			PSDscAllowPlainTextPassword=$true
 			PSDscAllowDomainUser = $true
 		},
 		@{ 
