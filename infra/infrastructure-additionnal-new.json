@@ -194,8 +194,8 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "configuration": {
-                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB.zip')]",
-                        "script": "DSC_Configuration_SMB.ps1",
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB-addiVm.zip')]",
+                        "script": "DSC_Configuration_SMB-addiVm.ps1",
                         "function": "SMB"
                     },
                     "configurationArguments": {
@@ -204,9 +204,6 @@
                         "location": "[resourceGroup().location]",
                         "NodeName": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
                         "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
-                    },
-                    "configurationData": {
-                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC_Data_SMB_addiVm.psd1')]"
                     }
                 },
                 "protectedSettings": {
