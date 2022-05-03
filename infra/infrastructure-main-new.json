@@ -331,7 +331,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2021-01-01",
 			"dependsOn": [
-				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]",
+				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]",
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkSettings').name)]",
                 "ADDeployment"
 			],
