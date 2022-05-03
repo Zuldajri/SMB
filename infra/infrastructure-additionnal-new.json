@@ -223,7 +223,92 @@
                 "name": "rdsh-addidsc-loop",
                 "count": "[parameters('deploymentSettings').numberOfExtraVms]"
             }
-        }
+        },
+        {
+			"name": "SessionHost",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2021-01-01",
+			"dependsOn": [
+				"rdsh-addidsc-loop"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeployExtraHosts.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration.ps1\\SessionHost"
+					},
+                    "addiVmName": {
+						"value": "[parameters('deploymentSettings').addiVmName]"
+					},
+                    "numberOfExtraVms": {
+						"value": "[parameters('deploymentSettings').numberOfExtraVms]"
+					}
+				}
+			}
+		},
+        {
+			"name": "RDSDeployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2021-01-01",
+			"dependsOn": [
+				"SessionHost"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeployRdsMulti.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration.ps1\\RDSDeployment"
+					},
+                    "gwpublicIPAddressName": {
+                        "value": "[concat(parameters('deploymentSettings').primaryVmName, '-pip')]"
+                    },
+                    "customerPrefix": {
+						"value": "[parameters('deploymentSettings').customerPrefix]"
+					},
+                    "numberOfExtraVms": {
+						"value": "[parameters('deploymentSettings').numberOfExtraVms]"
+					}
+				}
+			}
+		}
     ],
     "outputs": {}
 }
