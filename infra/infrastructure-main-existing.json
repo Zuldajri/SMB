@@ -420,7 +420,9 @@
             "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]",
+		"SessionHost",
+		"RDSDeployment"
             ],
             "properties": {
                 "protectedItemType": "Microsoft.Compute/virtualMachines",
