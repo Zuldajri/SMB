@@ -1,0 +1,72 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"primaryVmName": {
+			"type": "string"
+		},
+		"baseTemplateUri": {
+			"type": "string"
+		},
+		"domainName": {
+			"type": "string"
+		},
+		"domainUsername": {
+			"type": "string"
+		},
+		"domainPassword": {
+			"type": "securestring"
+		},
+        "configurationFunction": {
+			"type": "string"
+		},
+        "gwpublicIPAddressName": {
+			"type": "string"
+		},
+        "customerPrefix": {
+			"type": "string"
+		},
+        "numberOfExtraVms": {
+			"type": "int"
+		}
+	},
+	"variables": {
+	},
+	"resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('primaryVmName'),'/dscConfiguration')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "protectedSettings": {
+                    "Items": {
+                        "adminPassword": "[parameters('domainPassword')]"
+                    }
+                },
+                "publisher": "Microsoft.Powershell",
+                "settings": {
+                    "modulesUrl": "[concat(parameters('baseTemplateUri'),'dsc', '/Configuration.zip')]",
+                    "configurationFunction": "[parameters('configurationFunction')]",
+                    "Properties": {
+                        "adminCreds": {
+                            "UserName": "[parameters('domainUsername')]",
+                            "Password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "connectionBroker": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]",
+                        "domainName": "[parameters('domainName')]",
+                        "externalfqdn": "[reference(parameters('gwpublicIPAddressName')).dnsSettings.fqdn]",
+                        "numberOfRdshInstances": "[parameters('numberOfExtraVms')]",
+                        "sessionHostNamingPrefix": "[parameters('customerPrefix')]",
+                        "webAccessServer": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]"
+                    }
+                },
+                "type": "DSC",
+                "typeHandlerVersion": "2.11"
+            }
+        }    
+	],
+	"outputs": {
+	}
+}
