@@ -244,7 +244,7 @@
         {
 			"name": "ADDeployment",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
             "condition": "[equals(parameters('deploymentSettings').domainMethod, 'mainVm')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]",
@@ -329,7 +329,7 @@
         {
 			"name": "GatewayDeployment",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
 			"dependsOn": [
 				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]",
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkSettings').name)]",
@@ -366,7 +366,7 @@
         {
 			"name": "SessionHost",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
 			"dependsOn": [
 				"GatewayDeployment"
 			],
@@ -401,7 +401,7 @@
         {
 			"name": "RDSDeployment",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
             "condition": "[equals(parameters('deploymentSettings').extraVm, 'False')]",
 			"dependsOn": [
 				"SessionHost"
