@@ -306,7 +306,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2021-01-01",
 			"dependsOn": [
-				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
+				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]"
 			],
 			"properties": {
 				"mode": "Incremental",
@@ -420,7 +420,7 @@
             "name": "[concat(parameters('deploymentSettings').vaultName, '/', variables('backupFabric'), '/', variables('protectionContainer'), '/', variables('protectedItem'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]",
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]",
 		"SessionHost",
 		"RDSDeployment"
             ],
