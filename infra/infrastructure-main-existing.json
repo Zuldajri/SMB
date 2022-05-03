@@ -302,6 +302,118 @@
             }
         },
         {
+			"name": "GatewayDeployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2021-01-01",
+			"dependsOn": [
+				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'/dscConfiguration')]"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeploy.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration.ps1\\Gateway"
+					}
+				}
+			}
+		},
+        {
+			"name": "SessionHost",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2021-01-01",
+			"dependsOn": [
+				"GatewayDeployment"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeploy.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration.ps1\\SessionHost"
+					}
+				}
+			}
+		},
+        {
+			"name": "RDSDeployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2021-01-01",
+            "condition": "[equals(parameters('deploymentSettings').extraVm, 'False')]",
+			"dependsOn": [
+				"SessionHost"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeployRds1.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration.ps1\\RDSDeployment"
+					},
+                    "gwpublicIPAddressName": {
+                        "value": "[variables('vmVariable').publicIPAddressName]"
+                    },
+                    "customerPrefix": {
+						"value": "[parameters('deploymentSettings').customerPrefix]"
+					}
+				}
+			}
+		},
+        {
             "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
             "apiVersion": "2016-12-01",
             "condition": "[equals(parameters('deploymentSettings').backupEnabledForVms, 'true')]",
