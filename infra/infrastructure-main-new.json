@@ -311,7 +311,7 @@
                     ]
                 },
                 "dhcpOptions": {
-                    "dnsServers": "[parameters('virtualNetworkSettings').dnsServer]"
+                    "dnsServers": "[parameters('virtualNetworkSettings').dnsServers]"
                 },
                 "subnets": [
                     {
