@@ -32,7 +32,7 @@
 	},
 	"resources": [
 		{
-            "apiVersion": "2017-03-30",
+            "apiVersion": "2016-04-30-preview",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('addiVmName'), copyIndex(2),'/dscConfiguration')]",
             "location": "[resourceGroup().location]",
