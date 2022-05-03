@@ -227,7 +227,7 @@
         {
 			"name": "SessionHost",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
 			"dependsOn": [
 				"rdsh-addidsc-loop"
 			],
@@ -268,7 +268,7 @@
         {
 			"name": "RDSDeployment",
 			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2021-01-01",
+			"apiVersion": "2017-05-10",
 			"dependsOn": [
 				"SessionHost"
 			],
