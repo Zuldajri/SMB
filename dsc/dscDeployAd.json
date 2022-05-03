@@ -26,7 +26,7 @@
 	"resources": [
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "apiVersion": "2019-03-01",
+            "apiVersion": "2016-04-30-preview",
             "name": "[concat(parameters('primaryVmName'),'/dscConfiguration')]",
             "location": "[resourceGroup().location]",
             "properties": {
