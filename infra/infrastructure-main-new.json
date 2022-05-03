@@ -374,7 +374,7 @@
 			"apiVersion": "2015-01-01",
 			"dependsOn": [
 				"[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName,'dscConfiguration')]",
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkSettings').name)]",
+               	"updateVNetDNS2",
                 "ADDeployment"
 			],
 			"properties": {
