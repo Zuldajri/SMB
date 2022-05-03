@@ -33,7 +33,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('primaryVmName'),'/dscConfiguration')]",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2016-04-30-preview",
             "location": "[resourceGroup().location]",
             "properties": {
                 "autoUpgradeMinorVersion": true,
