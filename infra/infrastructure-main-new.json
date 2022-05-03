@@ -51,37 +51,47 @@
         },
         "backupFabric": "Azure",
         "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
-        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]"
-    },
-    "resources": [
-        {
-            "name": "[parameters('virtualNetworkSettings').name]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "location": "[resourceGroup().location]",
-            "condition": "[equals(parameters('deploymentSettings').domainMethod, 'extraVm')]",
-            "apiVersion": "2019-09-01",
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('virtualNetworkSettings').AddressPrefix]"
-                    ]
-                },
-                "dhcpOptions": {
-                    "dnsServers": [
-                        "10.3.1.9"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
-                        "properties": {
-                            "addressPrefix": "[parameters('virtualNetworkSettings').managementSubnetAddressPrefix]",
+        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
+        "subnets": [
+            {
+                "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
+                "properties": {
+                    "addressPrefix": "[parameters('virtualNetworkSettings').managementSubnetAddressPrefix]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
                             }
-                        }
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "name": "updateVNetDNS1",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "condition": "[equals(parameters('deploymentSettings').domainMethod, 'extraVm')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/vnet/vnet-with-dns-server.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkSettings').name]"
+                    },
+                    "virtualNetworkAddressRange": {
+                        "value": "[parameters('virtualNetworkSettings').AddressPrefix]"
+                    },
+                    "subnets": {
+                        "value": "[variables('subnets')]"
+                    },
+                    "dnsServerAddress": {
+                        "value": [
+                            "10.3.1.9"
+                        ]
                     }
-                ]
+                }
             }
         },
         {
@@ -324,40 +334,40 @@
             }
         },
         {
-            "name": "[parameters('virtualNetworkSettings').name]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "location": "[resourceGroup().location]",
+            "name": "updateVNetDNS2",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
             "condition": "[equals(parameters('deploymentSettings').domainMethod, 'mainVm')]",
-            "apiVersion": "2019-09-01",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('deploymentSettings').primaryVmName)]",
                 "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('deploymentSettings').primaryVmName, 'dscConfiguration')]",
                 "ADDeployment"
             ],
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('virtualNetworkSettings').AddressPrefix]"
-                    ]
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/vnet/vnet-with-dns-server.json",
+                    "contentVersion": "1.0.0.0"
                 },
-                "dhcpOptions": {
-                    "dnsServers": [
-                        "10.3.1.4"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
-                        "properties": {
-                            "addressPrefix": "[parameters('virtualNetworkSettings').managementSubnetAddressPrefix]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
-                            }
-                        }
+                "parameters": {
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkSettings').name]"
+                    },
+                    "virtualNetworkAddressRange": {
+                        "value": "[parameters('virtualNetworkSettings').AddressPrefix]"
+                    },
+                    "subnets": {
+                        "value": "[variables('subnets')]"
+                    },
+                    "dnsServerAddress": {
+                        "value": [
+                            "10.3.1.4"
+                        ]
                     }
-                ]
+                }
             }
         },
+
         {
 			"name": "GatewayDeployment",
 			"type": "Microsoft.Resources/deployments",
