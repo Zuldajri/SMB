@@ -441,10 +441,9 @@
 			}
 		},
         {
-			"name": "RDSDeployment",
+			"name": "RDSDeployment1",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2015-01-01",
-            "condition": "[equals(parameters('deploymentSettings').extraVm, 'False')]",
 			"dependsOn": [
 				"SessionHost"
 			],
@@ -471,7 +470,48 @@
 						"value": "[parameters('deploymentSettings').domainPassword]"
 					},
 					"configurationFunction": {
-						"value": "Configuration.ps1\\RDSDeployment"
+						"value": "Configuration1.ps1\\RDSDeployment"
+					},
+                    "gwpublicIPAddressName": {
+                        "value": "[concat(tolower(first(split(parameters('deploymentSettings').domainName,'.'))), '.', resourceGroup().location, '.cloudapp.azure.com')]"
+                    },
+                    "customerPrefix": {
+						"value": "[parameters('deploymentSettings').customerPrefix]"
+					}
+				}
+			}
+		},
+        {
+			"name": "RDSDeployment2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2015-01-01",
+			"dependsOn": [
+				"RDSDeployment1"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "https://raw.githubusercontent.com/Zuldajri/SMB/main/dsc/dscDeployRds1.json",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"primaryVmName": {
+						"value": "[parameters('deploymentSettings').primaryVmName]"
+					},
+					"baseTemplateUri": {
+						"value": "[variables('baseTemplateUri')]"
+					},
+					"domainName": {
+						"value": "[parameters('deploymentSettings').domainName]"
+					},
+					"domainUsername": {
+						"value": "[parameters('deploymentSettings').domainUsername]"
+					},
+					"domainPassword":{
+						"value": "[parameters('deploymentSettings').domainPassword]"
+					},
+					"configurationFunction": {
+						"value": "Configuration2.ps1\\RDSDeployment"
 					},
                     "gwpublicIPAddressName": {
                         "value": "[concat(tolower(first(split(parameters('deploymentSettings').domainName,'.'))), '.', resourceGroup().location, '.cloudapp.azure.com')]"
