@@ -53,7 +53,7 @@
                         },
                         "connectionBroker": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]",
                         "domainName": "[parameters('domainName')]",
-                        "externalfqdn": "[reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('gwpublicIPAddressName'))).dnsSettings.fqdn]",
+                        "externalfqdn": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('gwpublicIPAddressName')).dnsSettings.fqdn]",
                         "numberOfRdshInstances": "1",
                         "sessionHostNamingPrefix": "[parameters('customerPrefix')]",
                         "webAccessServer": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]"
