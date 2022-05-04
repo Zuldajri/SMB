@@ -179,12 +179,57 @@
                 "count": "[parameters('deploymentSettings').numberOfExtraVms]"
             }
         },
+	    {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2),'/dscConfiguration')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "rdsh-psconfig-loop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.PowerShell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "configuration": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC-SMB.zip')]",
+                        "script": "DSC_Configuration_SMB.ps1",
+                        "function": "SMB"
+                    },
+                    "configurationArguments": {
+                        "domainName": "[parameters('deploymentSettings').domainName]",
+                        "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]",
+                        "location": "[resourceGroup().location]",
+                        "NodeName": "[concat(parameters('deploymentSettings').addiVmName, copyIndex(2))]",
+                        "OMSWorkSpaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').customerId]"
+                    },
+                    "configurationData": {
+                        "url": "[concat(variables('baseTemplateUri'),'dsc', '/DSC_Data_SMB_addiVm.psd1')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "domainAdminCredentials": {
+                            "username": "[parameters('deploymentSettings').domainUsername]",
+                            "password": "[parameters('deploymentSettings').domainPassword]"
+                        },
+                        "OMSWorkSpaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('omsSettings').workspaceName), '2015-03-20').primarySharedKey]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "rdsh-addidsc-loop",
+                "count": "[parameters('deploymentSettings').numberOfExtraVms]"
+            }
+        },
         {
 			"name": "SessionHost",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2015-01-01",
 			"dependsOn": [
-				"rdsh-psconfig-loop"
+				"rdsh-addidsc-loop"
 			],
 			"properties": {
 				"mode": "Incremental",
