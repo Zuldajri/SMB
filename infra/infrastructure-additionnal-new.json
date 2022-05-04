@@ -253,7 +253,7 @@
 						"value": "Configuration.ps1\\RDSDeployment"
 					},
                     "gwpublicIPAddressName": {
-                        "value": "[concat(parameters('deploymentSettings').primaryVmName, '-pip')]"
+                        "value": "[concat(tolower(first(split(parameters('deploymentSettings').domainName,'.'))), '.', resourceGroup().location, '.cloudapp.azure.com')]"
                     },
                     "customerPrefix": {
 						"value": "[parameters('deploymentSettings').customerPrefix]"
