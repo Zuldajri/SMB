@@ -28,6 +28,7 @@
 		}
 	},
 	"variables": {
+		"customerPrefix": "[concat(parameters('customerPrefix'), '-vm')]"
 	},
 	"resources": [
         {
@@ -55,7 +56,7 @@
                         "domainName": "[parameters('domainName')]",
                         "externalfqdn": "[parameters('gwpublicIPAddressName')]",
                         "numberOfRdshInstances": "1",
-                        "sessionHostNamingPrefix": "[parameters('customerPrefix')]",
+                        "sessionHostNamingPrefix": "[variables('customerPrefix')]",
                         "webAccessServer": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]"
                     }
                 },
