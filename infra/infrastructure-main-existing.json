@@ -50,6 +50,7 @@
             "apiVersion": "2015-06-15"
         },
         "backupFabric": "Azure",
+	"domainMethod": "extraVm",
         "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
         "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]"
     },
@@ -256,7 +257,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigMainVM.ps1 -VMName ', parameters('deploymentSettings').primaryVmName, ' -PrimaryUseDataDisk ', parameters('deploymentSettings').primaryUseDataDisk, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName, ' -DomainMethod ', parameters('deploymentSettings').domainMethod)]"
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigMainVM.ps1 -VMName ', parameters('deploymentSettings').primaryVmName, ' -PrimaryUseDataDisk ', parameters('deploymentSettings').primaryUseDataDisk, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName, ' -DomainMethod ', variables('domainMethod'))]"
                 }
             }
         },
