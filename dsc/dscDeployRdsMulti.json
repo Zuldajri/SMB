@@ -31,7 +31,8 @@
 		}
 	},
 	"variables": {
-        "shNumber": "[add(parameters('numberOfExtraVms'),1)]"
+        "shNumber": "[add(parameters('numberOfExtraVms'),1)]",
+	"customerPrefix": "[concat(parameters('customerPrefix'), '-vm')]"
 	},
 	"resources": [
         {
@@ -59,7 +60,7 @@
                         "domainName": "[parameters('domainName')]",
                         "externalfqdn": "[parameters('gwpublicIPAddressName')]",
                         "numberOfRdshInstances": "[variables('shNumber')]",
-                        "sessionHostNamingPrefix": "[parameters('customerPrefix')]",
+                        "sessionHostNamingPrefix": "[variables('customerPrefix')]",
                         "webAccessServer": "[concat(parameters('primaryVmName'),'.',parameters('domainName'))]"
                     }
                 },
