@@ -416,6 +416,7 @@
 			"name": "RDSDeployment2",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2015-01-01",
+			"condition": "[equals(parameters('deploymentSettings').extraVm, 'False')]",
 			"dependsOn": [
 				"RDSDeployment1"
 			],
