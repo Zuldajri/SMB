@@ -6,7 +6,8 @@ Param(
     [string] $StorageAccountName,
     [string] $StorageAccountKey,
     [string] $FileShareType,
-    [string] $FileShareName
+    [string] $FileShareName,
+    [string] $DomainMethod
  )
 
 $osDrive = ((Get-WmiObject Win32_OperatingSystem).SystemDrive).TrimEnd(":")
