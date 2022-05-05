@@ -256,7 +256,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigMainVM.ps1 -VMName ', parameters('deploymentSettings').primaryVmName, ' -PrimaryUseDataDisk ', parameters('deploymentSettings').primaryUseDataDisk, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName)]"
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PSConfigMainVM.ps1 -VMName ', parameters('deploymentSettings').primaryVmName, ' -PrimaryUseDataDisk ', parameters('deploymentSettings').primaryUseDataDisk, ' -StorageAccountName ', parameters('deploymentSettings').storageAccountName, ' -StorageAccountKey ', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('deploymentSettings').storageAccountName), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' -FileShareType ', parameters('deploymentSettings').fileShareType, ' -FileShareName ', parameters('deploymentSettings').fileShareName, ' -DomainMethod ', parameters('deploymentSettings').domainMethod)]"
                 }
             }
         },
