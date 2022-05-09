@@ -27,7 +27,7 @@
     "variables": {
         "baseTemplateUri" : "[parameters('baseTemplateUri')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkSettings').name)]",
-        "managementSubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('virtualNetworkSettings').managementSubnetName)]",
+        "managementSubnetRef": "[parameters('virtualNetworkSettings').subnetId]",
         "dataDisks": [{
 			"name": "[variables('vmVariable').dataDiskName]",
 			"diskSizeGB": "[parameters('deploymentSettings').primaryDataDiskSize]",
