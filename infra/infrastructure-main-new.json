@@ -61,6 +61,12 @@
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
                             }
                 }
+            },
+            {
+                        "name" : "GatewaySubnet",
+                        "properties" : {
+                            "addressPrefix" : "[parameters('virtualNetworkSettings').gatewaySubnetAddressPrefix]"
+                        }
             }
         ]
     },
