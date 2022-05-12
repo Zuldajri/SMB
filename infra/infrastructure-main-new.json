@@ -52,7 +52,7 @@
         "backupFabric": "Azure",
         "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
         "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
-        "subnets": "[concat('subnets-', parameters('virtualNetworkSettings').vnetType)]",
+        "subnets": "[variables(concat('subnets-', parameters('virtualNetworkSettings').vnetType))]",
         "subnets-defaultVnet": [
             {
                 "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
