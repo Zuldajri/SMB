@@ -52,21 +52,57 @@
         "backupFabric": "Azure",
         "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
         "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('deploymentSettings').primaryVmName)]",
-        "subnets": [
+        "subnets": "[concat('subnets-', parameters('virtualNetworkSettings').vnetType)]",
+        "subnets-defaultVnet": [
             {
                 "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
                 "properties": {
                     "addressPrefix": "[parameters('virtualNetworkSettings').managementSubnetAddressPrefix]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
-                            }
+                    "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
+                    }
                 }
             },
             {
-                        "name" : "GatewaySubnet",
-                        "properties" : {
-                            "addressPrefix" : "[parameters('virtualNetworkSettings').gatewaySubnetAddressPrefix]"
-                        }
+                "name" : "GatewaySubnet",
+                "properties" : {
+                    "addressPrefix" : "[parameters('virtualNetworkSettings').gatewaySubnetAddressPrefix]"
+                }
+            }
+        ],
+        "subnets-advanced": [
+            {
+                "name": "[parameters('virtualNetworkSettings').managementSubnetName]",
+                "properties": {
+                    "addressPrefix": "[parameters('virtualNetworkSettings').managementSubnetAddressPrefix]",
+                    "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
+                    }
+                }
+            },
+            {
+                "name" : "[parameters('virtualNetworkSettings').dmzSubnetName]",
+                "properties" : {
+                    "addressPrefix" : "[parameters('virtualNetworkSettings').dmzSubnetAddressPrefix]",
+                    "networkSecurityGroup": {
+                        "id" : "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').dmzNetworkSecurityGroupName)]"
+                    }
+                }
+            },
+            {
+                "name" : "[parameters('virtualNetworkSettings').emergencySubnetName]",
+                "properties" : {
+                    "addressPrefix" : "[parameters('virtualNetworkSettings').emergencySubnetAddressPrefix]",
+                    "networkSecurityGroup": {
+                        "id" : "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('virtualNetworkSettings').emergencyNetworkSecurityGroupName)]"
+                    }
+                }
+            },
+            {
+                "name" : "GatewaySubnet",
+                "properties" : {
+                    "addressPrefix" : "[parameters('virtualNetworkSettings').gatewaySubnetAddressPrefix]"
+                }
             }
         ]
     },
