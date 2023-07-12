@@ -142,10 +142,7 @@
             "name": "[variables('vmVariable').publicIPAddressName]",
             "location": "[resourceGroup().location]",
             "properties": {
-                "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]",
-                "dnsSettings": {
-                    "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]"
-                }
+                "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]"
             }
         },
         {
