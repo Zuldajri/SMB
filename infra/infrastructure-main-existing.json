@@ -91,10 +91,7 @@
         	"[concat('Microsoft.Network/networkSecurityGroups/', parameters('virtualNetworkSettings').managementNetworkSecurityGroupName)]"
 	    ],
             "properties": {
-                "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]",
-                "dnsSettings": {
-                    "domainNameLabel": "[tolower(first(split(parameters('deploymentSettings').domainName,'.')))]"
-                }
+                "publicIPAllocationMethod": "[variables('vmVariable').publicIPAddressType]"
             }
         },
         {
